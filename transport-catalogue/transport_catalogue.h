@@ -75,4 +75,4 @@ private:
     std::vector<Stop*> dummy_stop;
 };
 
-}
+} // namespace tc

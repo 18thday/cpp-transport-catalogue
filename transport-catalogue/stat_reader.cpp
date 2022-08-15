@@ -42,7 +42,7 @@ void ParseStat(const TransportCatalogue& tc, const vector<string>& queries){
     }
 }
 
-}
+} // namespace query
 
 namespace print{
 
@@ -77,5 +77,5 @@ void PrintStop(const TransportCatalogue& tc, std::string_view stop_name){
     cout << endl;
 }
 
-}
-}
+} // namespace print
+} // namespace tc

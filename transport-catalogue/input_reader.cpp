@@ -65,7 +65,7 @@ void ParseInput(TransportCatalogue& tc, const vector<string>& queries){
     }
 }
 
-namespace detail{
+namespace service{
 
 vector<string_view> Split(string_view query){
     vector<string_view> result;
@@ -110,7 +110,7 @@ string_view CutStrViewBeforeSeparator(string_view& query, char separator){
     return q;
 }
 
-}
+} // namespace service
 
 namespace data{
 
@@ -157,7 +157,7 @@ void AddBus(TransportCatalogue& tc, const vector<string_view>& query){
     }
 }
 
-}
+} // namespace data
 
-}
-}
+} // namespace query
+} // namespace tc

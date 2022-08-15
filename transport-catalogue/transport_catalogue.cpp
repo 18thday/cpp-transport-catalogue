@@ -89,4 +89,4 @@ size_t TransportCatalogue::StopToStopHasher::operator ()(const std::pair<Stop*, 
     return static_cast<size_t>(hasher_(pairstops.first) + 1801 * hasher_(pairstops.second));
 }
 
-}
+} // namespace tc

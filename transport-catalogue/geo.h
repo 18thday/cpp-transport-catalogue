@@ -29,5 +29,5 @@ inline double ComputeDistance(Coordinates from, Coordinates to) {
             * 6371000;
 }
 
-}
-}
+} // namespace geo
+} // namespace tc
