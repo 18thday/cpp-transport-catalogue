@@ -19,28 +19,28 @@ inline const double EPSILON = 1e-6;
 bool IsZero(double value);
 
 struct Offset{
-	double dx;
-	double dy;
+    double dx;
+    double dy;
 };
 
 struct RenderSettings{
-	double width = 0.0;
-	double height = 0.0;
+    double width = 0.0;
+    double height = 0.0;
 
-	double padding = 0.0;
+    double padding = 0.0;
 
-	double line_width = 1.0;
-	double stop_radius = 0.0;
+    double line_width = 1.0;
+    double stop_radius = 0.0;
 
-	int bus_label_font_size = 12;
-	Offset bus_label_offset = {0.0, 0.0};
+    int bus_label_font_size = 12;
+    Offset bus_label_offset = {0.0, 0.0};
 
-	int stop_label_font_size = 12;
-	Offset stop_label_offset = {0.0, 0.0};
+    int stop_label_font_size = 12;
+    Offset stop_label_offset = {0.0, 0.0};
 
-	svg::Color underlayer_color;
-	double underlayer_width = 0.0;
-	std::vector<svg::Color> color_palette;
+    svg::Color underlayer_color;
+    double underlayer_width = 0.0;
+    std::vector<svg::Color> color_palette;
 };
 
 class SphereProjector {
@@ -62,25 +62,25 @@ private:
 
 class MapRenderer {
 public:
-	MapRenderer() = default;
-	MapRenderer(RenderSettings render_settings);
+    MapRenderer() = default;
+    MapRenderer(RenderSettings render_settings);
 
-	svg::Document RenderMap(const tc::TransportCatalogue& tc) const;
+    svg::Document RenderMap(const tc::TransportCatalogue& tc) const;
 
 private:
-	RenderSettings render_settings_;
+    RenderSettings render_settings_;
 
-	SphereProjector CreateSphereProjectionForBuses(const tc::TransportCatalogue& tc, const std::set<std::string_view>& bus_names) const;
+    SphereProjector CreateSphereProjectionForBuses(const tc::TransportCatalogue& tc, const std::set<std::string_view>& bus_names) const;
 
-	void AddRouteLinesToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& bus_names, const SphereProjector& proj) const;
-	void AddBusNamesToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& bus_names, const SphereProjector& proj) const;
-	void AddStopCircleToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& stop_names, const SphereProjector& proj) const;
-	void AddStopNamesToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& stop_names, const SphereProjector& proj) const;
+    void AddRouteLinesToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& bus_names, const SphereProjector& proj) const;
+    void AddBusNamesToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& bus_names, const SphereProjector& proj) const;
+    void AddStopCircleToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& stop_names, const SphereProjector& proj) const;
+    void AddStopNamesToSVG(svg::Document& to_svg, const tc::TransportCatalogue& tc, const std::set<std::string_view>& stop_names, const SphereProjector& proj) const;
 };
 
 template <typename PointInputIt>
 SphereProjector::SphereProjector(PointInputIt points_begin, PointInputIt points_end,
-                 	 	 	 	 double max_width, double max_height, double padding)
+                                     double max_width, double max_height, double padding)
      : padding_(padding) {
      // Если точки поверхности сферы не заданы, вычислять нечего
      if (points_begin == points_end) {

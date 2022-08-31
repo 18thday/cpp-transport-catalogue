@@ -12,23 +12,23 @@ namespace svg {
 
 struct Rgb{
     Rgb() = default;
-	Rgb(int r, int g, int b)
-	: red(r), green(g), blue(b){}
-	uint16_t red = 0;
-	uint16_t green = 0;
-	uint16_t blue = 0;
+    Rgb(int r, int g, int b)
+    : red(r), green(g), blue(b){}
+    uint16_t red = 0;
+    uint16_t green = 0;
+    uint16_t blue = 0;
 };
 
 std::ostream& operator<< (std::ostream& out, const svg::Rgb& color);
 
 struct Rgba{
     Rgba() = default;
-	Rgba(int r, int g, int b, double a)
-	: red(r), green(g), blue(b), opacity(a){}
-	uint16_t red = 0;
-	uint16_t green = 0;
-	uint16_t blue = 0;
-	double opacity = 1.0;
+    Rgba(int r, int g, int b, double a)
+    : red(r), green(g), blue(b), opacity(a){}
+    uint16_t red = 0;
+    uint16_t green = 0;
+    uint16_t blue = 0;
+    double opacity = 1.0;
 };
 
 std::ostream& operator<< (std::ostream& out, const svg::Rgba& color);
@@ -85,15 +85,15 @@ enum class StrokeLineCap {
 };
 
 inline std::ostream& operator<< (std::ostream& out, const svg::StrokeLineCap& line_cap){
-	using namespace std::literals;
-	if (line_cap == StrokeLineCap::ROUND){
-		out << "round"sv;
-	} else if (line_cap == StrokeLineCap::SQUARE){
-		out << "square"sv;
-	} else {
-		out << "butt"sv;
-	}
-	return out;
+    using namespace std::literals;
+    if (line_cap == StrokeLineCap::ROUND){
+        out << "round"sv;
+    } else if (line_cap == StrokeLineCap::SQUARE){
+        out << "square"sv;
+    } else {
+        out << "butt"sv;
+    }
+    return out;
 }
 
 enum class StrokeLineJoin {
@@ -105,75 +105,75 @@ enum class StrokeLineJoin {
 };
 
 inline std::ostream& operator<< (std::ostream& out, const svg::StrokeLineJoin& line_cap){
-	using namespace std::literals;
-	if (line_cap == StrokeLineJoin::ARCS){
-		out << "arcs"sv;
-	} else if (line_cap == StrokeLineJoin::BEVEL){
-		out << "bevel"sv;
-	} else if (line_cap == StrokeLineJoin::MITER_CLIP){
-		out << "miter-clip"sv;
-	} else if (line_cap == StrokeLineJoin::ROUND){
-		out << "round"sv;
-	} else {
-		out << "miter"sv;
-	}
-	return out;
+    using namespace std::literals;
+    if (line_cap == StrokeLineJoin::ARCS){
+        out << "arcs"sv;
+    } else if (line_cap == StrokeLineJoin::BEVEL){
+        out << "bevel"sv;
+    } else if (line_cap == StrokeLineJoin::MITER_CLIP){
+        out << "miter-clip"sv;
+    } else if (line_cap == StrokeLineJoin::ROUND){
+        out << "round"sv;
+    } else {
+        out << "miter"sv;
+    }
+    return out;
 }
 
 template <typename Owner>
 class PathProps{
 public:
-	Owner& SetFillColor(Color color){
-		fill_color_ = std::move(color);
-		return AsOwner();
-	}
-	Owner& SetStrokeColor(Color color){
-		stroke_color_ = std::move(color);
-		return AsOwner();
-	}
-	Owner& SetStrokeWidth(double width){
-		width_ = width;
-		return AsOwner();
-	}
-	Owner& SetStrokeLineCap(StrokeLineCap line_cap){
-		line_cap_ = line_cap;
-		return AsOwner();
-	}
-	Owner& SetStrokeLineJoin(StrokeLineJoin line_join){
-		line_join_ = line_join;
-		return AsOwner();
-	}
+    Owner& SetFillColor(Color color){
+        fill_color_ = std::move(color);
+        return AsOwner();
+    }
+    Owner& SetStrokeColor(Color color){
+        stroke_color_ = std::move(color);
+        return AsOwner();
+    }
+    Owner& SetStrokeWidth(double width){
+        width_ = width;
+        return AsOwner();
+    }
+    Owner& SetStrokeLineCap(StrokeLineCap line_cap){
+        line_cap_ = line_cap;
+        return AsOwner();
+    }
+    Owner& SetStrokeLineJoin(StrokeLineJoin line_join){
+        line_join_ = line_join;
+        return AsOwner();
+    }
 protected:
-	~PathProps() = default;
+    ~PathProps() = default;
 
-	void RenderAttrs(std::ostream& out) const {
-		using namespace std::literals;
-		if (fill_color_){
-			out << " fill=\""sv << *fill_color_ << "\""sv;
-		}
-		if (stroke_color_){
-			out << " stroke=\""sv << *stroke_color_ << "\""sv;
-		}
-		if (width_){
-			out << " stroke-width=\""sv << *width_ << "\""sv;
-		}
-		if (line_cap_){
-			out << " stroke-linecap=\""sv << *line_cap_ << "\""sv;
-		}
-		if (line_join_){
-			out << " stroke-linejoin=\""sv << *line_join_ << "\""sv;
-		}
-	}
+    void RenderAttrs(std::ostream& out) const {
+        using namespace std::literals;
+        if (fill_color_){
+            out << " fill=\""sv << *fill_color_ << "\""sv;
+        }
+        if (stroke_color_){
+            out << " stroke=\""sv << *stroke_color_ << "\""sv;
+        }
+        if (width_){
+            out << " stroke-width=\""sv << *width_ << "\""sv;
+        }
+        if (line_cap_){
+            out << " stroke-linecap=\""sv << *line_cap_ << "\""sv;
+        }
+        if (line_join_){
+            out << " stroke-linejoin=\""sv << *line_join_ << "\""sv;
+        }
+    }
 private:
-	Owner& AsOwner(){
-		return static_cast<Owner&>(*this);
-	}
+    Owner& AsOwner(){
+        return static_cast<Owner&>(*this);
+    }
 
-	std::optional<Color> fill_color_;
-	std::optional<Color> stroke_color_;
-	std::optional<double> width_;
-	std::optional<StrokeLineCap> line_cap_;
-	std::optional<StrokeLineJoin> line_join_;
+    std::optional<Color> fill_color_;
+    std::optional<Color> stroke_color_;
+    std::optional<double> width_;
+    std::optional<StrokeLineCap> line_cap_;
+    std::optional<StrokeLineJoin> line_join_;
 };
 
 /*
@@ -265,20 +265,20 @@ private:
 
 class ObjectContainer{
 public:
-	template <typename Obj>
-	void Add(Obj obj){
-		AddPtr(std::make_unique<Obj>(std::move(obj)));
-	}
-	virtual void AddPtr(std::unique_ptr<Object>&& obj) = 0;
+    template <typename Obj>
+    void Add(Obj obj){
+        AddPtr(std::make_unique<Obj>(std::move(obj)));
+    }
+    virtual void AddPtr(std::unique_ptr<Object>&& obj) = 0;
 protected:
-	~ObjectContainer() = default;
+    ~ObjectContainer() = default;
 };
 
 class Drawable {
 public:
-	virtual void Draw(ObjectContainer& container) const = 0;
+    virtual void Draw(ObjectContainer& container) const = 0;
 
-	virtual ~Drawable() = default;
+    virtual ~Drawable() = default;
 };
 
 class Document : public ObjectContainer {
@@ -289,7 +289,7 @@ public:
     // Выводит в ostream svg-представление документа
     void Render(std::ostream& out) const;
 private:
-	std::vector<std::unique_ptr<Object>> objects_;
+    std::vector<std::unique_ptr<Object>> objects_;
 
 };
 
