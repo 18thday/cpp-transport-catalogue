@@ -5,7 +5,6 @@
 using namespace std;
 
 namespace json {
-
 namespace {
 
 Node LoadNode(istream& input);
@@ -37,6 +36,7 @@ Node LoadString(std::istream& input) {
             // Поток закончился до того, как встретили закрывающую кавычку?
             throw ParsingError("String parsing error");
         }
+
         const char ch = *it;
         if (ch == '"') {
             // Встретили закрывающую кавычку
