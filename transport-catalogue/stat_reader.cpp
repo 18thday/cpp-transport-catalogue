@@ -32,12 +32,12 @@ void ReadStat(const TransportCatalogue& tc){
 
 void ParseStat(const TransportCatalogue& tc, const vector<string>& queries){
     for(string_view query : queries){
-        string_view q = detail::CutStrViewBeforeSeparator(query, ' ');
+        string_view q = service::CutStrViewBeforeSeparator(query, ' ');
         if (q == "Bus"s){
-            print::PrintBus(tc, detail::CutStrViewBeforeSeparator(query, '\n'));
+            print::PrintBus(tc, service::CutStrViewBeforeSeparator(query, '\n'));
         }
         if (q == "Stop"s){
-            print::PrintStop(tc, detail::CutStrViewBeforeSeparator(query, '\n'));
+            print::PrintStop(tc, service::CutStrViewBeforeSeparator(query, '\n'));
         }
     }
 }

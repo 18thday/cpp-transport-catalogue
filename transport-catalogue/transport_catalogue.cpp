@@ -3,6 +3,7 @@
 using namespace std;
 
 #include <cassert>
+#include <iostream>
 
 namespace tc{
 
@@ -11,10 +12,11 @@ void TransportCatalogue::AddStop(const std::string& name, double latitude, doubl
     stopname_to_stop_.insert({stops_.back().name, &(stops_.back())});
 }
 
-void TransportCatalogue::AddBus(const std::string& name, const std::vector<std::string_view>& stops_for_bus){
-    Bus bus;
+void TransportCatalogue::AddBus(const std::string& name, const std::vector<std::string_view>& stops_for_bus, bool is_roundtrip){
+	Bus bus;
     bus.name = name;
     bus.stops.reserve(stops_for_bus.size());
+    bus.is_roundtrip = is_roundtrip;
 
     for(auto& stop : stops_for_bus){
         bus.stops.push_back(stopname_to_stop_.at(stop));
@@ -28,11 +30,39 @@ void TransportCatalogue::AddBus(const std::string& name, const std::vector<std::
     }
 }
 
+std::set<std::string_view> TransportCatalogue::GetAllBusNames() const{
+	std::set<std::string_view> result;
+	for (const auto& [bus_name, _] : busname_to_bus_){
+		result.insert(bus_name);
+	}
+	return result;
+}
+
+bool TransportCatalogue::BusIsRoundtrip(std::string_view bus_name) const{
+    return busname_to_bus_.at(bus_name)->is_roundtrip;
+
+}
+
 const vector<Stop*>& TransportCatalogue::GetBusRoute(string_view bus_name) const{
     if (busname_to_bus_.count(bus_name) != 0){
         return busname_to_bus_.at(bus_name)->stops;
     }
     return dummy_stop;
+}
+
+
+std::set<std::string_view> TransportCatalogue::GetAllStopNames() const{
+	std::set<std::string_view> result;
+	for (const auto& [stop_name, _] : stopname_to_stop_){
+		result.insert(stop_name);
+	}
+	return result;
+}
+const Stop* TransportCatalogue::GetStopInfo(std::string_view stop_name) const{
+	if (stopname_to_stop_.count(stop_name) == 0){
+		return nullptr;
+	}
+	return stopname_to_stop_.at(stop_name);
 }
 
 StopRequest TransportCatalogue::GetBusForStop (string_view stop_name) const{
@@ -46,7 +76,12 @@ StopRequest TransportCatalogue::GetBusForStop (string_view stop_name) const{
     return result;
 }
 
+bool TransportCatalogue::StopHaveBus(std::string_view stop_name) const{
+	return (stopptr_to_buses_.count(stopname_to_stop_.at(stop_name)) != 0);
+}
+
 void TransportCatalogue::SetDistance(std::string_view stopname_from, std::string_view stopname_to, int distance){
+//	cerr << stopname_from << " "s << stopname_to << " "s << distance << endl;
     assert(!((stopname_to_stop_.count(stopname_from) == 0) || (stopname_to_stop_.count(stopname_to) == 0)));
     pairstops_to_dist_[{stopname_to_stop_.at(stopname_from), stopname_to_stop_.at(stopname_to)}] = distance;
 }

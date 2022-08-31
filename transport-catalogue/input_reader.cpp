@@ -42,7 +42,7 @@ void ReadInput(TransportCatalogue& tc){
 void ParseInput(TransportCatalogue& tc, const vector<string>& queries){
     vector<vector<string_view>> q;
     for(auto& query : queries){
-        q.push_back(detail::Split(query));
+        q.push_back(service::Split(query));
     }
 
     // Add all stops
@@ -131,7 +131,7 @@ void AddStopsDistance(TransportCatalogue& tc, const vector<string_view>& query){
     }
 
     for(size_t i = 4; i < query.size(); ++i){
-        auto dist_stopname_to = detail::ParseDistanceToStop(query[i]);
+        auto dist_stopname_to = service::ParseDistanceToStop(query[i]);
         tc.SetDistance(query[1], dist_stopname_to.second, dist_stopname_to.first);
     }
 }
@@ -140,7 +140,7 @@ void AddBus(TransportCatalogue& tc, const vector<string_view>& query){
     string_view bus_name = query[1];
     if (query[2] == ">"sv){
         vector<string_view> stops_for_bus(query.begin() + 3, query.end());
-        tc.AddBus(string(bus_name), stops_for_bus);
+        tc.AddBus(string(bus_name), stops_for_bus, true);
         return;
     }
     if (query[2] == "-"sv){
@@ -152,7 +152,7 @@ void AddBus(TransportCatalogue& tc, const vector<string_view>& query){
         for(auto it = query.rbegin() + 1; it < query.rend() - 3; ++it){
             stops_for_bus.push_back(*it);
         }
-        tc.AddBus(string(bus_name), stops_for_bus);
+        tc.AddBus(string(bus_name), stops_for_bus, false);
         return;
     }
 }

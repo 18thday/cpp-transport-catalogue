@@ -11,26 +11,10 @@
 #include <utility>
 
 #include "geo.h"
+#include "domain.h"
 
 namespace tc{
 
-struct Stop{
-    bool operator==(const Stop& other) const {
-        return name == other.name;
-    }
-
-    std::string name;
-    tc::geo::Coordinates coordinates;
-};
-
-struct Bus{
-    bool operator==(const Bus& other) const {
-        return name == other.name;
-    }
-
-    std::string name;
-    std::vector<Stop*> stops;
-};
 
 struct StopRequest{
     bool have_stop = false;
@@ -48,9 +32,16 @@ struct RouteStatistics{
 class TransportCatalogue{
 public:
     void AddStop(const std::string& name, double latitude, double longitude);
-    void AddBus(const std::string& bus_name, const std::vector<std::string_view>& stops_for_bus);
+    void AddBus(const std::string& bus_name, const std::vector<std::string_view>& stops_for_bus, bool is_roundtrip);
+
+    std::set<std::string_view> GetAllBusNames() const;
+    bool BusIsRoundtrip(std::string_view bus_name) const;
     const std::vector<Stop*>& GetBusRoute(std::string_view bus_name) const;
-    StopRequest GetBusForStop (std::string_view stop_name) const;
+
+    std::set<std::string_view> GetAllStopNames() const;
+    const Stop* GetStopInfo(std::string_view stop_name) const;
+    StopRequest GetBusForStop(std::string_view stop_name) const;
+    bool StopHaveBus(std::string_view stop_name) const;
 
     void SetDistance(std::string_view stopname_from, std::string_view stopname_to, int distance);
     int GetDistance(std::string_view stopname_from, std::string_view stopname_to) const;
