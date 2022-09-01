@@ -22,16 +22,12 @@ public:
 class Node {
 public:
    /* Реализуйте Node, используя std::variant */
-    using Value = std::variant<std::nullptr_t, int, double, std::string, bool, Array, Dict>;
+	using Value = std::variant<std::nullptr_t, int, double, std::string, bool, Array, Dict>;
 
-    Node() = default;
-    Node(Array array);
-    Node(Dict map);
-    Node(double value);
-    Node(int value);
-    Node(bool value);
-    Node(std::nullptr_t null);
-    Node(std::string str);
+	Node() = default;
+	template<typename Type>
+	Node(Type value) : value_(std::move(value)){
+	}
 
     bool IsArray() const;
     bool IsBool() const;
@@ -76,10 +72,10 @@ bool operator!= (const json::Document& lhs, const json::Document& rhs);
 Document Load(std::istream& input);
 
 struct PrintContext  {
-    PrintContext (std::ostream& out);
-    PrintContext (std::ostream& out, int indent_step, int indent = 0);
+	PrintContext (std::ostream& out);
+	PrintContext (std::ostream& out, int indent_step, int indent = 0);
 
-    PrintContext  Indented() const;
+	PrintContext  Indented() const;
 
     void PrintIndent() const;
 
@@ -90,7 +86,7 @@ struct PrintContext  {
 
 template <typename Value>
 void PrintValue(const Value& value, const PrintContext& ctx) {
-    ctx.PrintIndent();
+	ctx.PrintIndent();
     ctx.out << value;
 }
 void PrintValue(std::nullptr_t, const PrintContext& ctx);

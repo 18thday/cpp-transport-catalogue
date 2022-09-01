@@ -116,9 +116,11 @@ void AddBus(tc::TransportCatalogue& tc, const Dict& request){
     bool is_roundtrip = request.at("is_roundtrip"s).AsBool();
 
     vector<string_view> stops_for_bus;
-    (is_roundtrip) ?
-            stops_for_bus.reserve(stops.size()) :
-            stops_for_bus.reserve(stops.size() * 2 - 1);
+    if(is_roundtrip){
+    	stops_for_bus.reserve(stops.size());
+    } else{
+    	stops_for_bus.reserve(stops.size() * 2 - 1);
+    }
 
     for (const auto& stop_node : stops){
         stops_for_bus.push_back(stop_node.AsString());
