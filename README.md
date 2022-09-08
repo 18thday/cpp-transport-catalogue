@@ -29,9 +29,11 @@ Then compile files and run application through your preferred IDE.
 
 Usage
 ---------------------------------------------------
-Example of TC usage is contained in [main.cpp](https://github.com/18thday/cpp-transport-catalogue/blob/main/transport-catalogue/main.cpp)
-Example of input JSON file can be found in directory
-([input JSON](https://github.com/18thday/cpp-transport-catalogue/blob/main/input_test_B3.json))
+Example of TC usage is contained in 
+[main.cpp](https://github.com/18thday/cpp-transport-catalogue/blob/main/transport-catalogue/main.cpp)
+
+Example of input JSON file can be found in 
+[input_test_B3.json](https://github.com/18thday/cpp-transport-catalogue/blob/main/input_test_B3.json)
 
 
 Upcoming Updates
