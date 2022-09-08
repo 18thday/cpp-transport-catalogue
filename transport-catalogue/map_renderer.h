@@ -45,12 +45,12 @@ struct RenderSettings{
 
 class SphereProjector {
 public:
-    // points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
+    // points_begin and points_end sets the beginning and end of elements tange in geo::Coordinates
     template <typename PointInputIt>
     SphereProjector(PointInputIt points_begin, PointInputIt points_end,
                     double max_width, double max_height, double padding);
 
-    // Проецирует широту и долготу в координаты внутри SVG-изображения
+    // Projects latitude and longitude into Coordinates inside an SVG-image
     svg::Point operator()(tc::geo::Coordinates coords) const;
 
 private:
@@ -82,49 +82,50 @@ template <typename PointInputIt>
 SphereProjector::SphereProjector(PointInputIt points_begin, PointInputIt points_end,
                                      double max_width, double max_height, double padding)
      : padding_(padding) {
-     // Если точки поверхности сферы не заданы, вычислять нечего
+     // If there are no points on the surface of the sphere, there is nothing to calculate
      if (points_begin == points_end) {
          return;
      }
 
-     // Находим точки с минимальной и максимальной долготой
+     // Finding points with minimum and maximum longitude
      const auto [left_it, right_it] = std::minmax_element(
          points_begin, points_end,
          [](auto lhs, auto rhs) { return lhs.lng < rhs.lng; });
      min_lon_ = left_it->lng;
      const double max_lon = right_it->lng;
 
-     // Находим точки с минимальной и максимальной широтой
+     // Finding points with minimum and maximum latitude
      const auto [bottom_it, top_it] = std::minmax_element(
          points_begin, points_end,
          [](auto lhs, auto rhs) { return lhs.lat < rhs.lat; });
      const double min_lat = bottom_it->lat;
      max_lat_ = top_it->lat;
 
-     // Вычисляем коэффициент масштабирования вдоль координаты x
+     // Calculate the scaling factor along the x coordinate
      std::optional<double> width_zoom;
      if (!IsZero(max_lon - min_lon_)) {
          width_zoom = (max_width - 2 * padding) / (max_lon - min_lon_);
      }
 
-     // Вычисляем коэффициент масштабирования вдоль координаты y
+     // Calculate the scaling factor along the y coordinate
      std::optional<double> height_zoom;
      if (!IsZero(max_lat_ - min_lat)) {
          height_zoom = (max_height - 2 * padding) / (max_lat_ - min_lat);
      }
 
      if (width_zoom && height_zoom) {
-         // Коэффициенты масштабирования по ширине и высоте ненулевые,
-         // берём минимальный из них
+         // Scaling factors for width and height are non-zero,
+    	 // Take the minimum of them
          zoom_coeff_ = std::min(*width_zoom, *height_zoom);
      } else if (width_zoom) {
-         // Коэффициент масштабирования по ширине ненулевой, используем его
+    	 // Width scaling factor is non-zero, use it
          zoom_coeff_ = *width_zoom;
      } else if (height_zoom) {
-         // Коэффициент масштабирования по высоте ненулевой, используем его
+    	 // Height scaling factor is non-zero, use it
          zoom_coeff_ = *height_zoom;
      }
  }
+
 
 } // namespace renderer
 } // namespace tc

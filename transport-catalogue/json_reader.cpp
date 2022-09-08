@@ -2,6 +2,7 @@
 #include "request_handler.h"
 #include "svg.h"
 #include "map_renderer.h"
+#include "json_builder.h"
 
 #include <iostream>
 #include <string>
@@ -17,12 +18,12 @@ namespace reader {
 
 void ReadJSON(tc::TransportCatalogue& tc, istream& input){
     Node main_node = Load(input).GetRoot();
-    if (main_node.IsMap()){
+    if (main_node.IsDict()){
 //        Dict db = main_node.AsMap();
 
-        handler::PerformBaseRequests(tc, main_node.AsMap());
-        MapRenderer map_renderer(ReadRenderSettingsFromJSON(main_node.AsMap()));
-        handler::PerformStatRequests(tc, main_node.AsMap(), map_renderer);
+        handler::PerformBaseRequests(tc, main_node.AsDict());
+        MapRenderer map_renderer(ReadRenderSettingsFromJSON(main_node.AsDict()));
+        handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer);
     }
 }
 
@@ -32,7 +33,7 @@ RenderSettings ReadRenderSettingsFromJSON(const Dict& db){
     }
     RenderSettings render_setting;
 
-    Dict setings = db.at("render_settings"s).AsMap();
+    Dict setings = db.at("render_settings"s).AsDict();
 
     render_setting.width = setings.at("width"s).AsDouble();
     render_setting.height = setings.at("height"s).AsDouble();
@@ -80,17 +81,17 @@ void PerformBaseRequests(tc::TransportCatalogue& tc, const Dict& db){
     Node requests = db.at("base_requests"s);
     // Add all Stops
     for (const auto& request : requests.AsArray()){
-        AddStop(tc, request.AsMap());
+        AddStop(tc, request.AsDict());
     }
 
     // Add distances between Stops
     for (const auto& request : requests.AsArray()){
-        AddStopDistances(tc, request.AsMap());
+        AddStopDistances(tc, request.AsDict());
     }
 
     // Add all Buses
     for (const auto& request : requests.AsArray()){
-        AddBus(tc, request.AsMap());
+        AddBus(tc, request.AsDict());
     }
 }
 
@@ -102,7 +103,7 @@ void AddStop(tc::TransportCatalogue& tc, const Dict& request){
 
 void AddStopDistances(tc::TransportCatalogue& tc, const Dict& request){
     if ( (request.at("type"s).AsString() == "Stop"s) && (request.count("road_distances"s) != 0) ){
-        for (const auto& [stop_name, dist] : request.at("road_distances"s).AsMap()){
+        for (const auto& [stop_name, dist] : request.at("road_distances"s).AsDict()){
             tc.SetDistance(request.at("name"s).AsString(), stop_name, dist.AsInt());
         }
     }
@@ -117,9 +118,9 @@ void AddBus(tc::TransportCatalogue& tc, const Dict& request){
 
     vector<string_view> stops_for_bus;
     if(is_roundtrip){
-    	stops_for_bus.reserve(stops.size());
+        stops_for_bus.reserve(stops.size());
     } else{
-    	stops_for_bus.reserve(stops.size() * 2 - 1);
+        stops_for_bus.reserve(stops.size() * 2 - 1);
     }
 
     for (const auto& stop_node : stops){
@@ -147,10 +148,18 @@ void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const rende
     stat.reserve(requests.AsArray().size());
 
     for (const auto& request : requests.AsArray()){
-        stat.push_back(GetStatAnswer(tc, request.AsMap(), mr));
+        stat.push_back(GetStatAnswer(tc, request.AsDict(), mr));
     }
-
-    json::PrintNode(stat, std::cout);
+    json::Print(
+          json::Document{
+              json::Builder{}
+              .Value(stat)
+              .Build()
+          },
+          cout
+      );
+      cout << endl;
+//    json::PrintNode(stat, std::cout);
 }
 
 
