@@ -39,7 +39,7 @@ Put into main() function the next commands to work with TC:
 tc::TransportCatalogue tc;
 tc::reader::ReadJSON(tc, std::cin);
 ```
-Direct JSON file with requests to the input (`std::cin`)
+Direct JSON file with requests to the input : `std::cin`
 
 Example of TC usage is contained in 
 [main.cpp](https://github.com/18thday/cpp-transport-catalogue/blob/main/transport-catalogue/main.cpp)
