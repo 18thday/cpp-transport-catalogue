@@ -1,2 +1,2 @@
-# cpp-transport-catalogue
-Финальный проект: транспортный справочник
+# Transport Catalogue
+Final educational project at Yandex Practicum
