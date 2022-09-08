@@ -28,7 +28,7 @@ Then compile files and run application through your preferred IDE.
 
 Usage
 ---------------------------------------------------
-Example of input JSON file can be found in directory ()
+Example of input JSON file can be found in directory ([input JSON](https://github.com/18thday/cpp-transport-catalogue/blob/main/input_test_B3.json))
 
 
 Upcoming Updates
