@@ -24,11 +24,13 @@ System Requirements
 Installation
 ---------------------------------------------------
 You can download the current development version as a number of cpp-files. 
+
 Then compile files and run application through your preferred IDE.
 
 Usage
 ---------------------------------------------------
-Example of input JSON file can be found in directory ([input JSON](https://github.com/18thday/cpp-transport-catalogue/blob/main/input_test_B3.json))
+Example of input JSON file can be found in directory
+([input JSON](https://github.com/18thday/cpp-transport-catalogue/blob/main/input_test_B3.json))
 
 
 Upcoming Updates
