@@ -10,14 +10,6 @@ namespace {
 
 Node LoadNode(istream& input);
 
-string LoadLiteral(istream& input) {
-    string s;
-    while (isalpha(input.peek())) {
-        s.push_back(static_cast<char>(input.get()));
-    }
-    return s;
-}
-
 Node LoadArray(istream& input) {
     Array result;
     char c;

@@ -118,9 +118,9 @@ void AddBus(tc::TransportCatalogue& tc, const Dict& request){
 
     vector<string_view> stops_for_bus;
     if(is_roundtrip){
-        stops_for_bus.reserve(stops.size());
+    	stops_for_bus.reserve(stops.size());
     } else{
-        stops_for_bus.reserve(stops.size() * 2 - 1);
+    	stops_for_bus.reserve(stops.size() * 2 - 1);
     }
 
     for (const auto& stop_node : stops){
@@ -147,60 +147,64 @@ void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const rende
     Array stat;
     stat.reserve(requests.AsArray().size());
 
+    auto builderJSON = json::Builder{};
+    builderJSON.StartArray();
     for (const auto& request : requests.AsArray()){
-        stat.push_back(GetStatAnswer(tc, request.AsDict(), mr));
+        GetStatAnswer(tc, request.AsDict(), mr, builderJSON);
     }
+
     json::Print(
-          json::Document{
-              json::Builder{}
-              .Value(stat)
-              .Build()
-          },
-          cout
+		json::Document{
+    		builderJSON
+			.EndArray()
+			.Build()
+        },
+        cout
       );
       cout << endl;
-//    json::PrintNode(stat, std::cout);
+
 }
 
 
 
-Dict GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const renderer::MapRenderer& mr){
-    Dict result;
-    result["request_id"s] = request.at("id").AsInt();
+void GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const renderer::MapRenderer& mr, Builder& bjson){
+  //  Dict result;
+    bjson.StartDict().Key("request_id"s).Value(request.at("id").AsInt());
     if (request.at("type").AsString() == "Bus"s){
         tc::RouteStatistics stat = tc.GetStatistics(request.at("name").AsString());
         if (stat.stops == 0){
-            result["error_message"s] = "not found"s;
-            return result;
+        	bjson.Key("error_message"s).Value("not found"s).EndDict();
+            return;
         }
-        RouteStatisticsToDictConvertion(result, stat);
+        RouteStatisticsToDictConvertion(bjson, stat);
     } else if (request.at("type").AsString() == "Stop"s){
         tc::StopRequest stop = tc.GetBusForStop(request.at("name").AsString());
         if (!stop.have_stop){
-            result["error_message"s] = "not found"s;
-            return result;
+        	bjson.Key("error_message"s).Value("not found"s).EndDict();
+            return;
         }
-        StopRequestToDictConvertion(result, stop);
+        StopRequestToDictConvertion(bjson, stop);
     } else if (request.at("type").AsString() == "Map"s){
         std::ostringstream str_stream;
-        result["map"s] = MapRequest(str_stream, tc, mr).str();
+        bjson.Key("map"s).Value(MapRequest(str_stream, tc, mr).str());
     }
-    return result;
+    bjson.EndDict();
+   // return result;
 }
 
-void RouteStatisticsToDictConvertion(Dict& dict, const tc::RouteStatistics& stat){
-    dict["stop_count"] = Node(static_cast<int>(stat.stops));
-    dict["unique_stop_count"] = Node(static_cast<int>(stat.unique_stops));
-    dict["route_length"] = Node(stat.route_length);
-    dict["curvature"] = Node(stat.curvature);
+void RouteStatisticsToDictConvertion(Builder& bjson, const tc::RouteStatistics& stat){
+	bjson.Key("stop_count"s).Value(static_cast<int>(stat.stops));
+	bjson.Key("unique_stop_count"s).Value(static_cast<int>(stat.unique_stops));
+	bjson.Key("route_length"s).Value(stat.route_length);
+	bjson.Key("curvature"s).Value(stat.curvature);
 }
 
-void StopRequestToDictConvertion(Dict& dict, const tc::StopRequest& stop){
-    Array buses;
+void StopRequestToDictConvertion(Builder& bjson, const tc::StopRequest& stop){
+	bjson.Key("buses"s).StartArray();
     for (const auto& bus : stop.all_buses){
-        buses.push_back(Node(string(bus)));
+    	bjson.Value(string(bus));
     }
-    dict["buses"] = buses;
+	bjson.EndArray();
 }
 
 std::ostringstream& MapRequest(std::ostringstream& str_stream, tc::TransportCatalogue& tc, const renderer::MapRenderer& mr){

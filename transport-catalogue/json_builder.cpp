@@ -52,7 +52,7 @@ DictContext Builder::StartDict(){
 	} else if (nodes_stack_.back()->IsNull() ){
 		nodes_stack_.back()->GetValue() = Dict{};
 	} else if (nodes_stack_.back()->IsArray()){
-		cerr << " ADD TO ARRAY ";
+//		cerr << " ADD TO ARRAY ";
 
 		get<Array>(nodes_stack_.back()->GetValue()).emplace_back(move(Dict {}));
 		nodes_stack_.emplace_back(&get<Array>(nodes_stack_.back()->GetValue()).back());

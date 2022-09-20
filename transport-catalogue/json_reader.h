@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json.h"
+#include "json_builder.h"
 #include "svg.h"
 #include "transport_catalogue.h"
 #include "map_renderer.h"
@@ -23,10 +24,10 @@ void AddStopDistances(tc::TransportCatalogue& tc, const json::Dict& request);
 void AddBus(tc::TransportCatalogue& tc, const json::Dict& request);
 
 //  StatRequest Handlers
-json::Dict GetStatAnswer(tc::TransportCatalogue& tc, const json::Dict& request, const renderer::MapRenderer& render_settings);
+void GetStatAnswer(tc::TransportCatalogue& tc, const json::Dict& request, const renderer::MapRenderer& render_settings, json::Builder& bjson);
 
-void RouteStatisticsToDictConvertion(json::Dict& dict, const tc::RouteStatistics& stat);
-void StopRequestToDictConvertion(json::Dict& dict, const tc::StopRequest& stop);
+void RouteStatisticsToDictConvertion(json::Builder& bjson, const tc::RouteStatistics& stat);
+void StopRequestToDictConvertion(json::Builder& bjson, const tc::StopRequest& stop);
 std::ostringstream& MapRequest(std::ostringstream& str_stream, tc::TransportCatalogue& tc, const renderer::MapRenderer& render_settings);
 
 //  Render
