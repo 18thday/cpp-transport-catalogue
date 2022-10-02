@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <functional>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
@@ -24,9 +25,20 @@ struct StopRequest{
 struct RouteStatistics{
     size_t stops = 0;
     size_t unique_stops = 0;
-    int route_length = 0;
+    double route_length = 0;
     double route_length_geo = 0;
     double curvature = 0;
+};
+
+enum class EdgeType{
+    BUS,
+    WAIT
+};
+
+struct EdgeInfo{
+    EdgeType type;
+    std::string_view name;
+    std::optional<int> span_count = std::nullopt;
 };
 
 class TransportCatalogue{
@@ -47,7 +59,16 @@ public:
     int GetDistance(std::string_view stopname_from, std::string_view stopname_to) const;
     int GetDistance(Stop* stopptr_from, Stop* stopptr_to) const;
 
-    RouteStatistics GetStatistics(std::string_view bus_name)const;
+    RouteStatistics GetStatistics(std::string_view bus_name) const;
+
+    size_t GetStopCount() const;
+
+    void CreateGraph();
+    void AddEdgeInfo(size_t, EdgeInfo);
+    void AddStopToStopEdge(Stop* from, Stop* to, size_t edge_id);
+    size_t GetStopIndex(std::string_view stop_name) const;
+    std::optional<size_t> GetPairStopsEdgeId(Stop* from, Stop* to) ;
+    EdgeInfo GetEdgeInfo(size_t edge_id) const;
 
 private:
     std::deque<Stop> stops_;
@@ -58,10 +79,15 @@ private:
 
     std::unordered_map<Stop*, std::set<std::string_view>> stopptr_to_buses_;
 
+    std::unordered_map<const Stop*, size_t> stopptr_to_graph_;
+    std::unordered_map<size_t, EdgeInfo> graph_edge_to_info_;
+
     struct StopToStopHasher{
         size_t operator() (const std::pair<Stop*, Stop*>& pairstops) const;
     };
     std::unordered_map<std::pair<Stop*, Stop*>, int, StopToStopHasher> pairstops_to_dist_;
+
+    std::unordered_map<std::pair<Stop*, Stop*>, size_t, StopToStopHasher> pairstops_to_edge_id_;
 
     std::vector<Stop*> dummy_stop;
 };

@@ -119,6 +119,38 @@ RouteStatistics TransportCatalogue::GetStatistics(std::string_view bus_name) con
     return result;
 }
 
+size_t TransportCatalogue::GetStopCount() const{
+    return stopname_to_stop_.size();
+}
+
+void TransportCatalogue::CreateGraph(){
+    size_t i = 0;
+    for (const auto [_, stopptr] : stopname_to_stop_){
+        stopptr_to_graph_[stopptr] = i;
+        i += 2;
+    }
+}
+
+void TransportCatalogue::AddEdgeInfo(size_t edge_id, EdgeInfo edge_info){
+    graph_edge_to_info_[edge_id] = std::move(edge_info);
+}
+
+void TransportCatalogue::AddStopToStopEdge(Stop* from, Stop* to, size_t edge_id){
+    pairstops_to_edge_id_[make_pair(from, to)] = edge_id;
+}
+
+size_t TransportCatalogue::GetStopIndex(std::string_view stop_name) const{
+    return stopptr_to_graph_.at(GetStopInfo(stop_name));
+}
+
+optional<size_t> TransportCatalogue::GetPairStopsEdgeId(Stop* from, Stop* to) {
+    return pairstops_to_edge_id_.count(make_pair(from, to)) == 0 ? std::nullopt : optional<size_t>(pairstops_to_edge_id_.at(make_pair(from, to)));
+}
+
+EdgeInfo TransportCatalogue::GetEdgeInfo(size_t edge_id) const {
+    return graph_edge_to_info_.at(edge_id);
+}
+
 size_t TransportCatalogue::StopToStopHasher::operator ()(const std::pair<Stop*, Stop*>& pairstops) const{
     hash<Stop*> hasher_;
     return static_cast<size_t>(hasher_(pairstops.first) + 1801 * hasher_(pairstops.second));
