@@ -35,12 +35,6 @@ enum class EdgeType{
     WAIT
 };
 
-struct EdgeInfo{
-    EdgeType type;
-    std::string_view name;
-    std::optional<int> span_count = std::nullopt;
-};
-
 class TransportCatalogue{
 public:
     void AddStop(const std::string& name, double latitude, double longitude);
@@ -63,13 +57,6 @@ public:
 
     size_t GetStopCount() const;
 
-    void CreateGraph();
-    void AddEdgeInfo(size_t, EdgeInfo);
-    void AddStopToStopEdge(Stop* from, Stop* to, size_t edge_id);
-    size_t GetStopIndex(std::string_view stop_name) const;
-    std::optional<size_t> GetPairStopsEdgeId(Stop* from, Stop* to) ;
-    EdgeInfo GetEdgeInfo(size_t edge_id) const;
-
 private:
     std::deque<Stop> stops_;
     std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
@@ -79,15 +66,10 @@ private:
 
     std::unordered_map<Stop*, std::set<std::string_view>> stopptr_to_buses_;
 
-    std::unordered_map<const Stop*, size_t> stopptr_to_graph_;
-    std::unordered_map<size_t, EdgeInfo> graph_edge_to_info_;
-
     struct StopToStopHasher{
         size_t operator() (const std::pair<Stop*, Stop*>& pairstops) const;
     };
     std::unordered_map<std::pair<Stop*, Stop*>, int, StopToStopHasher> pairstops_to_dist_;
-
-    std::unordered_map<std::pair<Stop*, Stop*>, size_t, StopToStopHasher> pairstops_to_edge_id_;
 
     std::vector<Stop*> dummy_stop;
 };

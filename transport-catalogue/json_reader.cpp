@@ -5,6 +5,7 @@
 #include "json_builder.h"
 #include "graph.h"
 #include "router.h"
+#include "transport_router.h"
 
 #include <iostream>
 #include <string>
@@ -26,21 +27,13 @@ void ReadJSON(tc::TransportCatalogue& tc, istream& input){
 
         handler::PerformBaseRequests(tc, main_node.AsDict());
 
-        auto routing_settings = handler::PerformRoutingSettings(main_node.AsDict());
-
-        TC_Graph tc_graph(tc.GetStopCount() * 2);
-        tc.CreateGraph();
-        handler::AddStopsEdgeToGraph(tc, tc_graph, routing_settings);
-        handler::AddStopToStopEdgeToGraph(tc, tc_graph, routing_settings);
-        graph::Router router(tc_graph);
+        tc::router::Router router(handler::PerformRoutingSettings(main_node.AsDict()), tc);
 
         MapRenderer map_renderer(ReadRenderSettingsFromJSON(main_node.AsDict()));
 
-        handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer, tc_graph, router);
+        handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer, router);
     }
 }
-
-
 
 RenderSettings ReadRenderSettingsFromJSON(const Dict& db){
     if (db.count("render_settings"s) == 0){
@@ -153,39 +146,17 @@ void AddBus(tc::TransportCatalogue& tc, const Dict& request){
 }
 
 //Routing handler
-RoutingSettings PerformRoutingSettings(const Dict& db){
+tc::router::RoutingSettings PerformRoutingSettings(const Dict& db){
     if (db.count("routing_settings"s) == 0){
         return {};
     }
 
     Dict settings = db.at("routing_settings"s).AsDict();
-    return {settings.at("bus_wait_time"s).AsInt(), settings.at("bus_velocity"s).AsInt()};
+    return {settings.at("bus_wait_time"s).AsInt(), settings.at("bus_velocity"s).AsDouble()};
 }
-
-void AddStopsEdgeToGraph(tc::TransportCatalogue& tc, TC_Graph& tc_graph, const RoutingSettings& rs){
-    for (const auto& stop_name : tc.GetAllStopNames()){
-        size_t index = tc.GetStopIndex(stop_name);
-        auto edge_id = tc_graph.AddEdge({index, index + 1, rs.bus_wait_time*1.0});
-        tc.AddEdgeInfo(edge_id, {EdgeType::WAIT, stop_name});
-    }
-}
-
-void AddStopToStopEdgeToGraph(tc::TransportCatalogue& tc, TC_Graph& tc_graph, const RoutingSettings& rs){
-    for (const auto& bus_name : tc.GetAllBusNames()){
-        auto route =  tc.GetBusRoute(bus_name);
-        if (tc.BusIsRoundtrip(bus_name)){
-            AddBusRouteEdgesToGraph(route.begin(), route.end(),bus_name, tc, tc_graph, rs);
-        } else {
-            auto it_middle = route.begin() + route.size() / 2;
-            AddBusRouteEdgesToGraph(route.begin(), it_middle + 1, bus_name, tc, tc_graph, rs);
-            AddBusRouteEdgesToGraph(it_middle, route.end(), bus_name, tc, tc_graph, rs);
-        }
-    }
-}
-
 
 // Stat Request
-void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const renderer::MapRenderer& mr, const TC_Graph& tc_graph, const graph::Router<double>& router){
+void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const renderer::MapRenderer& mr, const tc::router::Router& router){
 
     if (db.count("stat_requests"s) == 0){
         return;
@@ -199,7 +170,7 @@ void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const rende
     auto builderJSON = json::Builder{};
     builderJSON.StartArray();
     for (const auto& request : requests.AsArray()){
-        GetStatAnswer(tc, request.AsDict(), mr, builderJSON, tc_graph, router);
+        GetStatAnswer(tc, request.AsDict(), mr, builderJSON, router);
     }
 
     json::Print(
@@ -211,11 +182,9 @@ void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const rende
         cout
       );
       cout << endl;
-
 }
 
-
-void GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const renderer::MapRenderer& mr, Builder& bjson, const TC_Graph& tc_graph, const graph::Router<double>& router){
+void GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const renderer::MapRenderer& mr, Builder& bjson, const tc::router::Router& router){
 //    cerr << "GetStatAnswer" << endl;
     bjson.StartDict().Key("request_id"s).Value(request.at("id").AsInt());
 
@@ -243,8 +212,7 @@ void GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const render
         string stop_from = request.at("from"s).AsString();
         string stop_to = request.at("to"s).AsString();
 
-//        graph::Router router(tc_graph);
-        auto route = router.BuildRoute(tc.GetStopIndex(stop_from), tc.GetStopIndex(stop_to));
+        auto route = router.FindRoute(stop_from, stop_to);
 
         if (!route){
             bjson.Key("error_message"s).Value("not found"s).EndDict();
@@ -252,7 +220,7 @@ void GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const render
         }
         bjson.Key("items"s).StartArray();
         for (const auto& edge_id : route.value().edges){
-            EdgeInfo edge_info = tc.GetEdgeInfo(edge_id);
+            tc::router::EdgeInfo edge_info = router.GetEdgeInfo(edge_id);
             bjson.StartDict();
             if (edge_info.type == EdgeType::WAIT){
                 bjson.Key("type"s).Value("Wait"s);
@@ -262,7 +230,7 @@ void GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const render
                 bjson.Key("bus"s).Value(string(edge_info.name));
                 bjson.Key("span_count"s).Value(edge_info.span_count.value());
             }
-            bjson.Key("time"s).Value((tc_graph.GetEdge(edge_id)).weight);
+            bjson.Key("time"s).Value((router.GetEdge(edge_id)).weight);
             bjson.EndDict();
         }
         bjson.EndArray();
