@@ -44,10 +44,6 @@ public:
     const graph::Edge<double>& GetEdge(size_t edge_id) const;
     const EdgeInfo& GetEdgeInfo(size_t edge_id) const;
 
-
-
-
-
 private:
     RoutingSettings settings_;
     const TransportCatalogue& tc_;

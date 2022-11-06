@@ -9,12 +9,18 @@
 #include "router.h"
 #include "transport_router.h"
 
+#include <string>
+
 namespace tc {
 namespace reader {
 
 void ReadJSON(tc::TransportCatalogue& tc, std::istream& input = std::cin);
 renderer::RenderSettings ReadRenderSettingsFromJSON(const json::Dict& db);
 svg::Color ReadSVGColorFromJSON(const json::Node& from_color);
+std::string ReadSerializationSettingsFromJSON(const json::Dict& db);
+
+void MakeBaseFromJSON(tc::TransportCatalogue& tc, std::istream& input);
+void ProcessRequestFromJSON(std::istream& input);
 
 namespace handler {
 

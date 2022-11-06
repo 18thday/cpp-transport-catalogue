@@ -6,11 +6,14 @@
 #include "graph.h"
 #include "router.h"
 #include "transport_router.h"
+#include "serialization.h"
+
 
 #include <iostream>
 #include <string>
 #include <string_view>
 #include <sstream>
+#include <fstream>
 
 using namespace std;
 using namespace json;
@@ -31,7 +34,44 @@ void ReadJSON(tc::TransportCatalogue& tc, istream& input){
 
         MapRenderer map_renderer(ReadRenderSettingsFromJSON(main_node.AsDict()));
 
+        std::string filename = ReadSerializationSettingsFromJSON(main_node.AsDict());
+//        tc::serialization::Serialize(tc, filename);
+//        tc::serialization::Serialize(main_node.AsDict(), filename);
+
         handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer, router);
+    }
+}
+
+void MakeBaseFromJSON(tc::TransportCatalogue& tc, istream& input){
+    Node main_node = Load(input).GetRoot();
+    if (main_node.IsDict()){
+
+        handler::PerformBaseRequests(tc, main_node.AsDict());
+        std::string filename = ReadSerializationSettingsFromJSON(main_node.AsDict());
+
+//        tc::serialization::Serialize(tc, filename);
+        tc::serialization::Serialize(main_node.AsDict(), filename);
+    }
+}
+void ProcessRequestFromJSON(istream& input){
+    Node main_node = Load(input).GetRoot();
+    if (main_node.IsDict()){
+
+        std::string filename = ReadSerializationSettingsFromJSON(main_node.AsDict());
+
+    	tc_serialization::TC TC;
+
+    	std::ifstream ifs(filename, std::ios_base::binary);
+    	if (!TC.ParseFromIstream(&ifs)) {
+    		return;
+    	}
+
+        tc::TransportCatalogue tc = tc::serialization::DeserializeTransportCatalogue(TC);
+        MapRenderer map_renderer(tc::serialization::DeserializeRenderSettings(TC));
+        tc::router::Router router(tc::serialization::DeserializeRoutingSettings(TC), tc);
+
+        handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer, router);
+//        handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer);
     }
 }
 
@@ -77,6 +117,14 @@ svg::Color ReadSVGColorFromJSON(const Node& from_color){
         }
     }
     return from_color.AsString();
+}
+
+std::string ReadSerializationSettingsFromJSON(const Dict& db){
+	if (db.count("serialization_settings"s) == 0){
+		return {};
+	}
+	Dict settings = db.at("serialization_settings"s).AsDict();
+	return settings.at("file"s).AsString();
 }
 
 namespace handler {

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package tc_serialization;
+
+import "map_renderer.proto";
+import "transport_router.proto";
+
+message Stop{
+    string name = 1;
+    double lat = 2;
+    double lng = 3;
+    repeated string to_stop = 4;
+    repeated int32 dist = 5;
+}
+
+message Bus{
+    string name = 1;
+    bool is_roundtrip = 2;
+    repeated string route_stop = 3;
+}
+
+message TC{
+    repeated Stop stop = 1;
+    repeated Bus bus = 2;
+    RenderSettings rs = 3;
+    RoutingSettings routing_s = 4;
+}

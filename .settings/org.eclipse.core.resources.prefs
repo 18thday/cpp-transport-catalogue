@@ -1,5 +1,13 @@
 eclipse.preferences.version=1
-encoding//transport-catalogue/json.cpp=UTF-8
+encoding//transport-catalogue/json.cpp=Cp1251
 encoding//transport-catalogue/json.h=UTF-8
+encoding//transport-catalogue/json_builder.cpp=UTF-8
+encoding//transport-catalogue/json_builder.h=UTF-8
+encoding//transport-catalogue/json_reader.cpp=UTF-8
+encoding//transport-catalogue/json_reader.h=UTF-8
 encoding//transport-catalogue/main.cpp=UTF-8
 encoding//transport-catalogue/map_renderer.h=UTF-8
+encoding//transport-catalogue/request_handler.cpp=UTF-8
+encoding//transport-catalogue/request_handler.h=UTF-8
+encoding//transport-catalogue/transport_catalogue.proto=UTF-8
+encoding//transport-catalogue/transport_router.proto=UTF-8

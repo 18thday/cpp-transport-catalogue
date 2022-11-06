@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package tc_serialization;
+
+message Offset{
+    double dx = 1;
+    double dy = 2;
+}
+message Opacity{
+    double opacity = 1;
+}
+
+message Color{
+    string name = 1;
+    repeated int32 rgb = 2;
+    Opacity opacity = 3;
+}

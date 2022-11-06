@@ -70,6 +70,7 @@ private:
         size_t operator() (const std::pair<Stop*, Stop*>& pairstops) const;
     };
     std::unordered_map<std::pair<Stop*, Stop*>, int, StopToStopHasher> pairstops_to_dist_;
+    std::unordered_map<std::string_view, std::vector<std::string_view>> stopname_to_road_stop_;
 
     std::vector<Stop*> dummy_stop;
 };

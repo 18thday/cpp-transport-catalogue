@@ -1,20 +1,30 @@
-#include "transport_catalogue.h"
-#include "json.h"
-#include "json_reader.h"
-
-#include "input_reader.h"
-#include "stat_reader.h"
-
-#include <string>
+#include <fstream>
 #include <iostream>
-#include <utility>
+#include <string_view>
 
-using namespace std;
+#include "request_handler.h"
 
-int main() {
-    tc::TransportCatalogue tc;
+using namespace std::literals;
 
-    tc::reader::ReadJSON(tc, std::cin);
+void PrintUsage(std::ostream& stream = std::cerr) {
+    stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
+}
 
-    return 0;
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        PrintUsage();
+        return 1;
+    }
+
+    const std::string_view mode(argv[1]);
+
+    if (mode == "make_base"sv) {
+    	MakeBase();
+//    	std::cerr << "MakeBase() OK"s <<std::endl;
+    } else if (mode == "process_requests"sv) {
+    	ProcessRequests();
+    } else {
+        PrintUsage();
+        return 1;
+    }
 }
