@@ -123,6 +123,9 @@ size_t TransportCatalogue::GetStopCount() const{
     return stopname_to_stop_.size();
 }
 
+const TransportCatalogue::DistancesTable TransportCatalogue::GetDistancesTable() const{
+    return pairstops_to_dist_;
+}
 
 size_t TransportCatalogue::StopToStopHasher::operator ()(const std::pair<Stop*, Stop*>& pairstops) const{
     hash<Stop*> hasher_;

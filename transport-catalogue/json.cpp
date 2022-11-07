@@ -34,23 +34,18 @@ Node LoadString(std::istream& input) {
     std::string s;
     while (true) {
         if (it == end) {
-            // РџРѕС‚РѕРє Р·Р°РєРѕРЅС‡РёР»СЃСЏ РґРѕ С‚РѕРіРѕ, РєР°Рє РІСЃС‚СЂРµС‚РёР»Рё Р·Р°РєСЂС‹РІР°СЋС‰СѓСЋ РєР°РІС‹С‡РєСѓ?
             throw ParsingError("String parsing error");
         }
         const char ch = *it;
         if (ch == '"') {
-            // Р’СЃС‚СЂРµС‚РёР»Рё Р·Р°РєСЂС‹РІР°СЋС‰СѓСЋ РєР°РІС‹С‡РєСѓ
-            ++it;
+             ++it;
             break;
         } else if (ch == '\\') {
-            // Р’СЃС‚СЂРµС‚РёР»Рё РЅР°С‡Р°Р»Рѕ escape-РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚Рё
             ++it;
             if (it == end) {
-                // РџРѕС‚РѕРє Р·Р°РІРµСЂС€РёР»СЃСЏ СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ СЃРёРјРІРѕР»Р° РѕР±СЂР°С‚РЅРѕР№ РєРѕСЃРѕР№ С‡РµСЂС‚С‹
                 throw ParsingError("String parsing error");
             }
             const char escaped_char = *(it);
-            // РћР±СЂР°Р±Р°С‚С‹РІР°РµРј РѕРґРЅСѓ РёР· РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚РµР№: \\, \n, \t, \r, \"
             switch (escaped_char) {
                 case 'n':
                     s.push_back('\n');
@@ -68,14 +63,11 @@ Node LoadString(std::istream& input) {
                     s.push_back('\\');
                     break;
                 default:
-                    // Р’СЃС‚СЂРµС‚РёР»Рё РЅРµРёР·РІРµСЃС‚РЅСѓСЋ escape-РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ
                     throw ParsingError("Unrecognized escape sequence \\"s + escaped_char);
             }
         } else if (ch == '\n' || ch == '\r') {
-            // РЎС‚СЂРѕРєРѕРІС‹Р№ Р»РёС‚РµСЂР°Р» РІРЅСѓС‚СЂРё- JSON РЅРµ РјРѕР¶РµС‚ РїСЂРµСЂС‹РІР°С‚СЊСЃСЏ СЃРёРјРІРѕР»Р°РјРё \r РёР»Рё \n
             throw ParsingError("Unexpected end of line"s);
         } else {
-            // РџСЂРѕСЃС‚Рѕ СЃС‡РёС‚С‹РІР°РµРј РѕС‡РµСЂРµРґРЅРѕР№ СЃРёРјРІРѕР» Рё РїРѕРјРµС‰Р°РµРј РµРіРѕ РІ СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰СѓСЋ СЃС‚СЂРѕРєСѓ
             s.push_back(ch);
         }
         ++it;
@@ -135,7 +127,6 @@ Number LoadNumber(std::istream& input) {
 
     std::string parsed_num;
 
-    // РЎС‡РёС‚С‹РІР°РµС‚ РІ parsed_num РѕС‡РµСЂРµРґРЅРѕР№ СЃРёРјРІРѕР» РёР· input
     auto read_char = [&parsed_num, &input] {
         parsed_num += static_cast<char>(input.get());
         if (!input) {
@@ -143,7 +134,6 @@ Number LoadNumber(std::istream& input) {
         }
     };
 
-    // РЎС‡РёС‚С‹РІР°РµС‚ РѕРґРЅСѓ РёР»Рё Р±РѕР»РµРµ С†РёС„СЂ РІ parsed_num РёР· input
     auto read_digits = [&input, read_char] {
         if (!std::isdigit(input.peek())) {
             throw ParsingError("A digit is expected"s);
@@ -156,23 +146,19 @@ Number LoadNumber(std::istream& input) {
     if (input.peek() == '-') {
         read_char();
     }
-    // РџР°СЂСЃРёРј С†РµР»СѓСЋ С‡Р°СЃС‚СЊ С‡РёСЃР»Р°
     if (input.peek() == '0') {
         read_char();
-        // РџРѕСЃР»Рµ 0 РІ JSON РЅРµ РјРѕРіСѓС‚ РёРґС‚Рё РґСЂСѓРіРёРµ С†РёС„СЂС‹
     } else {
         read_digits();
     }
 
     bool is_int = true;
-    // РџР°СЂСЃРёРј РґСЂРѕР±РЅСѓСЋ С‡Р°СЃС‚СЊ С‡РёСЃР»Р°
     if (input.peek() == '.') {
         read_char();
         read_digits();
         is_int = false;
     }
 
-    // РџР°СЂСЃРёРј СЌРєСЃРїРѕРЅРµРЅС†РёР°Р»СЊРЅСѓСЋ С‡Р°СЃС‚СЊ С‡РёСЃР»Р°
     if (int ch = input.peek(); ch == 'e' || ch == 'E') {
         read_char();
         if (ch = input.peek(); ch == '+' || ch == '-') {
@@ -184,12 +170,9 @@ Number LoadNumber(std::istream& input) {
 
     try {
         if (is_int) {
-            // РЎРЅР°С‡Р°Р»Р° РїСЂРѕР±СѓРµРј РїСЂРµРѕР±СЂР°Р·РѕРІР°С‚СЊ СЃС‚СЂРѕРєСѓ РІ int
-            try {
+             try {
                 return std::stoi(parsed_num);
             } catch (...) {
-                // Р’ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡Рё, РЅР°РїСЂРёРјРµСЂ, РїСЂРё РїРµСЂРµРїРѕР»РЅРµРЅРёРё,
-                // РєРѕРґ РЅРёР¶Рµ РїРѕРїСЂРѕР±СѓРµС‚ РїСЂРµРѕР±СЂР°Р·РѕРІР°С‚СЊ СЃС‚СЂРѕРєСѓ РІ double
             }
         }
         return std::stod(parsed_num);
@@ -197,10 +180,6 @@ Number LoadNumber(std::istream& input) {
         throw ParsingError("Failed to convert "s + parsed_num + " to number"s);
     }
 }
-
-// РЎС‡РёС‚С‹РІР°РµС‚ СЃРѕРґРµСЂР¶РёРјРѕРµ СЃС‚СЂРѕРєРѕРІРѕРіРѕ Р»РёС‚РµСЂР°Р»Р° JSON-РґРѕРєСѓРјРµРЅС‚Р°
-// Р¤СѓРЅРєС†РёСЋ СЃР»РµРґСѓРµС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РїРѕСЃР»Рµ СЃС‡РёС‚С‹РІР°РЅРёСЏ РѕС‚РєСЂС‹РІР°СЋС‰РµРіРѕ СЃРёРјРІРѕР»Р° ":
-
 
 Node LoadNode(istream& input) {
     char c;

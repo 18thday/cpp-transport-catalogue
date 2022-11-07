@@ -37,6 +37,8 @@ enum class EdgeType{
 
 class TransportCatalogue{
 public:
+
+
     void AddStop(const std::string& name, double latitude, double longitude);
     void AddBus(const std::string& bus_name, const std::vector<std::string_view>& stops_for_bus, bool is_roundtrip);
 
@@ -57,6 +59,14 @@ public:
 
     size_t GetStopCount() const;
 
+    struct StopToStopHasher{
+        size_t operator() (const std::pair<Stop*, Stop*>& pairstops) const;
+    };
+
+    using DistancesTable =  std::unordered_map<std::pair<Stop*, Stop*>, int, StopToStopHasher>;
+
+    const DistancesTable GetDistancesTable() const;
+
 private:
     std::deque<Stop> stops_;
     std::unordered_map<std::string_view, Stop*> stopname_to_stop_;
@@ -66,11 +76,7 @@ private:
 
     std::unordered_map<Stop*, std::set<std::string_view>> stopptr_to_buses_;
 
-    struct StopToStopHasher{
-        size_t operator() (const std::pair<Stop*, Stop*>& pairstops) const;
-    };
-    std::unordered_map<std::pair<Stop*, Stop*>, int, StopToStopHasher> pairstops_to_dist_;
-    std::unordered_map<std::string_view, std::vector<std::string_view>> stopname_to_road_stop_;
+    DistancesTable pairstops_to_dist_;
 
     std::vector<Stop*> dummy_stop;
 };

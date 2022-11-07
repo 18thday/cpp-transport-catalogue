@@ -19,10 +19,10 @@ int main(int argc, char* argv[]) {
     const std::string_view mode(argv[1]);
 
     if (mode == "make_base"sv) {
-    	MakeBase();
-//    	std::cerr << "MakeBase() OK"s <<std::endl;
+        MakeBase();
+//        std::cerr << "MakeBase() OK"s <<std::endl;
     } else if (mode == "process_requests"sv) {
-    	ProcessRequests();
+        ProcessRequests();
     } else {
         PrintUsage();
         return 1;

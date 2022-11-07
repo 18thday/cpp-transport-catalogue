@@ -26,53 +26,44 @@ namespace reader {
 
 void ReadJSON(tc::TransportCatalogue& tc, istream& input){
     Node main_node = Load(input).GetRoot();
-    if (main_node.IsDict()){
-
-        handler::PerformBaseRequests(tc, main_node.AsDict());
-
-        tc::router::Router router(handler::PerformRoutingSettings(main_node.AsDict()), tc);
-
-        MapRenderer map_renderer(ReadRenderSettingsFromJSON(main_node.AsDict()));
-
-        std::string filename = ReadSerializationSettingsFromJSON(main_node.AsDict());
-//        tc::serialization::Serialize(tc, filename);
-//        tc::serialization::Serialize(main_node.AsDict(), filename);
-
-        handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer, router);
+    if (!main_node.IsDict()){
+        return;
     }
+    handler::PerformBaseRequests(tc, main_node.AsDict());
+
+    tc::router::Router router(handler::PerformRoutingSettings(main_node.AsDict()), tc);
+
+    MapRenderer map_renderer(ReadRenderSettingsFromJSON(main_node.AsDict()));
+
+    handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer, router);
 }
 
-void MakeBaseFromJSON(tc::TransportCatalogue& tc, istream& input){
-    Node main_node = Load(input).GetRoot();
-    if (main_node.IsDict()){
-
-        handler::PerformBaseRequests(tc, main_node.AsDict());
-        std::string filename = ReadSerializationSettingsFromJSON(main_node.AsDict());
-
-//        tc::serialization::Serialize(tc, filename);
-        tc::serialization::Serialize(main_node.AsDict(), filename);
-    }
+json::Node LoadJSON(istream& input){
+    return Load(input).GetRoot();
 }
-void ProcessRequestFromJSON(istream& input){
-    Node main_node = Load(input).GetRoot();
+
+bool MakeBaseFromJSON(tc::TransportCatalogue& tc, tc::renderer::RenderSettings& render_s,
+                      tc::router::RoutingSettings& routing_s, const json::Node& main_node){
+    if (!main_node.IsDict()){
+        return false;
+    }
+    handler::PerformBaseRequests(tc, main_node.AsDict());
+    render_s = ReadRenderSettingsFromJSON(main_node.AsDict());
+    routing_s = handler::PerformRoutingSettings(main_node.AsDict());
+
+    return true;
+}
+
+bool ProcessRequestFromJSON(const tc::TransportCatalogue& tc, const tc::renderer::RenderSettings& render_s,
+                            const tc::router::RoutingSettings& routing_s, const json::Node& main_node){
     if (main_node.IsDict()){
 
-        std::string filename = ReadSerializationSettingsFromJSON(main_node.AsDict());
-
-    	tc_serialization::TC TC;
-
-    	std::ifstream ifs(filename, std::ios_base::binary);
-    	if (!TC.ParseFromIstream(&ifs)) {
-    		return;
-    	}
-
-        tc::TransportCatalogue tc = tc::serialization::DeserializeTransportCatalogue(TC);
-        MapRenderer map_renderer(tc::serialization::DeserializeRenderSettings(TC));
-        tc::router::Router router(tc::serialization::DeserializeRoutingSettings(TC), tc);
-
+        MapRenderer map_renderer(render_s);
+        tc::router::Router router(routing_s, tc);
         handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer, router);
-//        handler::PerformStatRequests(tc, main_node.AsDict(), map_renderer);
+        return true;
     }
+    return false;
 }
 
 RenderSettings ReadRenderSettingsFromJSON(const Dict& db){
@@ -119,12 +110,16 @@ svg::Color ReadSVGColorFromJSON(const Node& from_color){
     return from_color.AsString();
 }
 
-std::string ReadSerializationSettingsFromJSON(const Dict& db){
-	if (db.count("serialization_settings"s) == 0){
-		return {};
-	}
-	Dict settings = db.at("serialization_settings"s).AsDict();
-	return settings.at("file"s).AsString();
+string ReadSerializationSettingsFromJSON(const Node& main_node){
+    if (!main_node.IsDict()){
+        return {};
+    }
+    const auto& db = main_node.AsDict();
+    if (db.count("serialization_settings"s) == 0){
+        return {};
+    }
+    Dict settings = db.at("serialization_settings"s).AsDict();
+    return settings.at("file"s).AsString();
 }
 
 namespace handler {
@@ -204,7 +199,7 @@ tc::router::RoutingSettings PerformRoutingSettings(const Dict& db){
 }
 
 // Stat Request
-void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const renderer::MapRenderer& mr, const tc::router::Router& router){
+void PerformStatRequests(const tc::TransportCatalogue& tc, const Dict& db, const renderer::MapRenderer& mr, const tc::router::Router& router){
 
     if (db.count("stat_requests"s) == 0){
         return;
@@ -232,7 +227,7 @@ void PerformStatRequests(tc::TransportCatalogue& tc, const Dict& db, const rende
       cout << endl;
 }
 
-void GetStatAnswer(tc::TransportCatalogue& tc, const Dict& request, const renderer::MapRenderer& mr, Builder& bjson, const tc::router::Router& router){
+void GetStatAnswer(const tc::TransportCatalogue& tc, const Dict& request, const renderer::MapRenderer& mr, Builder& bjson, const tc::router::Router& router){
 //    cerr << "GetStatAnswer" << endl;
     bjson.StartDict().Key("request_id"s).Value(request.at("id").AsInt());
 
@@ -303,7 +298,7 @@ void StopRequestToDictConvertion(Builder& bjson, const tc::StopRequest& stop){
     bjson.EndArray();
 }
 
-std::ostringstream& MapRequest(std::ostringstream& str_stream, tc::TransportCatalogue& tc, const renderer::MapRenderer& mr){
+std::ostringstream& MapRequest(std::ostringstream& str_stream, const tc::TransportCatalogue& tc, const renderer::MapRenderer& mr){
     svg::Document svg_doc = mr.RenderMap(tc);
     svg_doc.Render(str_stream);
     return str_stream;
