@@ -14,31 +14,35 @@
 namespace tc {
 namespace serialization {
 
-struct SerializationSettings{
-    std::string filename;
-};
+//struct SerializationSettings{
+//    std::string filename;
+//};
 
 // Serialization
-void Serialize(const tc::TransportCatalogue& tc, const tc::renderer::RenderSettings& rs,
-               const tc::router::RoutingSettings& routing_s, const std::string& filename);
+void Serialize(const tc::TransportCatalogue& tc, const tc::renderer::RenderSettings& render_set,
+               const tc::router::RoutingSettings& routing_set, const std::string& filename);
 
-void SerializeStop(tc_serialization::TC& tc_pb, const tc::TransportCatalogue& tc);
-void SerializeBus(tc_serialization::TC& tc_pb, const tc::TransportCatalogue& tc);
+tc_serialization::TransportCatalogue SerializeTransportCatalogue(const tc::TransportCatalogue& tc);
+void SerializeStop(tc_serialization::TransportCatalogue& tc_pb, const tc::TransportCatalogue& tc);
+void SerializeBus(tc_serialization::TransportCatalogue& tc_pb, const tc::TransportCatalogue& tc);
 
 tc_serialization::Color SerializeSVGColor(const svg::Color& from_color);
-void SerializeRenderSettings(tc_serialization::TC& tc_pb, const tc::renderer::RenderSettings& rs);
+tc_serialization::RenderSettings SerializeRenderSettings(const tc::renderer::RenderSettings& render_set);
 
-void SerializeRoutingSettings(tc_serialization::TC& tc_pb, const tc::router::RoutingSettings& routing_s);
+tc_serialization::RoutingSettings SerializeRoutingSettings(const tc::router::RoutingSettings& routing_set);
 
 // Deserialization
-tc::TransportCatalogue DeserializeTransportCatalogue(const tc_serialization::TC& tc_pb);
-void DeserializeStop(tc::TransportCatalogue& tc, const tc_serialization::TC& tc_pb);
-void DeserializeBus(tc::TransportCatalogue& tc, const tc_serialization::TC& tc_pb);
+void Deserialize(tc::TransportCatalogue& tc, tc::renderer::RenderSettings& render_set,
+                 tc::router::RoutingSettings& routing_set, const std::string& filename);
 
-tc::renderer::RenderSettings DeserializeRenderSettings(const tc_serialization::TC& tc_pb);
+tc::TransportCatalogue DeserializeTransportCatalogue(const tc_serialization::TransportCatalogue& tc_pb);
+void DeserializeStop(tc::TransportCatalogue& tc, const tc_serialization::TransportCatalogue& tc_pb);
+void DeserializeBus(tc::TransportCatalogue& tc, const tc_serialization::TransportCatalogue& tc_pb);
+
+tc::renderer::RenderSettings DeserializeRenderSettings(const tc_serialization::RenderSettings& render_set_pb);
 svg::Color DeserializeSVGColor(tc_serialization::Color color);
 
-tc::router::RoutingSettings DeserializeRoutingSettings(const tc_serialization::TC& tc_pb);
+tc::router::RoutingSettings DeserializeRoutingSettings(const tc_serialization::RoutingSettings& routing_set_pb);
 
 } // namespace serialization
 } // namespace tc

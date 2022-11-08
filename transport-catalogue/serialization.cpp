@@ -20,20 +20,26 @@ using namespace json;
 namespace tc {
 namespace serialization {
 
-void Serialize(const tc::TransportCatalogue& tc, const tc::renderer::RenderSettings& rs,
-               const tc::router::RoutingSettings& routing_s, const std::string& filename){
-    tc_serialization::TC tc_pb;
+void Serialize(const tc::TransportCatalogue& tc, const tc::renderer::RenderSettings& render_set,
+               const tc::router::RoutingSettings& routing_set, const std::string& filename){
 
-    SerializeStop(tc_pb, tc);
-    SerializeBus(tc_pb, tc);
-    SerializeRenderSettings(tc_pb, rs);
-    SerializeRoutingSettings(tc_pb, routing_s);
+    tc_serialization::FullModulePack full_pack;
+    *full_pack.mutable_transport_catalogue() = std::move(SerializeTransportCatalogue(tc));
+    *full_pack.mutable_render_set() = std::move(SerializeRenderSettings(render_set));
+    *full_pack.mutable_routing_set() = std::move(SerializeRoutingSettings(routing_set));
 
     ofstream ofs(filename, ios::binary);
-    tc_pb.SerializeToOstream(&ofs);
+    full_pack.SerializeToOstream(&ofs);
 }
 
-void SerializeStop(tc_serialization::TC& tc_pb, const tc::TransportCatalogue& tc){
+tc_serialization::TransportCatalogue SerializeTransportCatalogue(const tc::TransportCatalogue& tc){
+    tc_serialization::TransportCatalogue tc_pb;
+    SerializeStop(tc_pb, tc);
+    SerializeBus(tc_pb, tc);
+    return std::move(tc_pb);
+}
+
+void SerializeStop(tc_serialization::TransportCatalogue& tc_pb, const tc::TransportCatalogue& tc){
     // road_distances
     unordered_map<string_view, vector<pair<string, int>>> stopname_to_road_stop_;
     auto distances_table = tc.GetDistancesTable();
@@ -60,7 +66,7 @@ void SerializeStop(tc_serialization::TC& tc_pb, const tc::TransportCatalogue& tc
     }
 }
 
-void SerializeBus(tc_serialization::TC& tc_pb, const tc::TransportCatalogue& tc){
+void SerializeBus(tc_serialization::TransportCatalogue& tc_pb, const tc::TransportCatalogue& tc){
     const auto bus_names = tc.GetAllBusNames();
     for (const auto bus_name : bus_names){
         tc_serialization::Bus sbus;
@@ -97,80 +103,97 @@ tc_serialization::Color SerializeSVGColor(const svg::Color& from_color){
     return std::move(color);
 }
 
-void SerializeRenderSettings(tc_serialization::TC& tc_pb, const tc::renderer::RenderSettings& rs){
-    tc_serialization::RenderSettings srs;
+tc_serialization::RenderSettings SerializeRenderSettings(const tc::renderer::RenderSettings& render_set){
+    tc_serialization::RenderSettings render_set_pb;
 
-    srs.set_width(rs.width);
-    srs.set_height(rs.height);
-    srs.set_padding(rs.padding);
-    srs.set_line_width(rs.line_width);
-    srs.set_stop_radius(rs.stop_radius);
+    render_set_pb.set_width(render_set.width);
+    render_set_pb.set_height(render_set.height);
+    render_set_pb.set_padding(render_set.padding);
+    render_set_pb.set_line_width(render_set.line_width);
+    render_set_pb.set_stop_radius(render_set.stop_radius);
 
-    srs.set_bus_label_font_size(rs.bus_label_font_size);
+    render_set_pb.set_bus_label_font_size(render_set.bus_label_font_size);
 
     tc_serialization::Offset o_b;
-    o_b.set_dx(rs.bus_label_offset.dx);
-    o_b.set_dy(rs.bus_label_offset.dy);
-    *srs.mutable_bus_label_offset() = o_b;
+    o_b.set_dx(render_set.bus_label_offset.dx);
+    o_b.set_dy(render_set.bus_label_offset.dy);
+    *render_set_pb.mutable_bus_label_offset() = o_b;
 
-    srs.set_stop_label_font_size(rs.stop_label_font_size);
+    render_set_pb.set_stop_label_font_size(render_set.stop_label_font_size);
 
     tc_serialization::Offset o_s;
-    o_s.set_dx(rs.stop_label_offset.dx);
-    o_s.set_dy(rs.stop_label_offset.dy);
-    *srs.mutable_stop_label_offset() = o_s;
+    o_s.set_dx(render_set.stop_label_offset.dx);
+    o_s.set_dy(render_set.stop_label_offset.dy);
+    *render_set_pb.mutable_stop_label_offset() = o_s;
 
 
-    *srs.mutable_underlayer_color() = SerializeSVGColor(rs.underlayer_color);
-    srs.set_underlayer_width(rs.underlayer_width);
+    *render_set_pb.mutable_underlayer_color() = SerializeSVGColor(render_set.underlayer_color);
+    render_set_pb.set_underlayer_width(render_set.underlayer_width);
 
 
-    for(const auto& color : rs.color_palette){
-        *srs.add_color_palette() = SerializeSVGColor(color);
+    for(const auto& color : render_set.color_palette){
+        *render_set_pb.add_color_palette() = SerializeSVGColor(color);
     }
 
-    *tc_pb.mutable_rs() = srs;
+    return std::move(render_set_pb);
 }
 
-void SerializeRoutingSettings(tc_serialization::TC& tc_pb, const tc::router::RoutingSettings& routing_s){
-    tc_serialization::RoutingSettings srouting_s;
+tc_serialization::RoutingSettings SerializeRoutingSettings(const tc::router::RoutingSettings& routing_set){
+    tc_serialization::RoutingSettings routing_set_pb;
 
-    srouting_s.set_bus_wait_time(routing_s.bus_wait_time);
-    srouting_s.set_bus_velocity(routing_s.bus_velocity);
+    routing_set_pb.set_bus_wait_time(routing_set.bus_wait_time);
+    routing_set_pb.set_bus_velocity(routing_set.bus_velocity);
 
-    *tc_pb.mutable_routing_s() = srouting_s;
+   return std::move(routing_set_pb);
 }
 
-tc::router::RoutingSettings DeserializeRoutingSettings(const tc_serialization::TC& tc_pb){
-    return {tc_pb.routing_s().bus_wait_time(), tc_pb.routing_s().bus_velocity()};
+
+//----------- Deserialization ------------
+
+void Deserialize(tc::TransportCatalogue& tc, tc::renderer::RenderSettings& render_set,
+                 tc::router::RoutingSettings& routing_set, const std::string& filename){
+    tc_serialization::FullModulePack full_pack;
+
+    std::ifstream ifs(filename, std::ios_base::binary);
+    if (!full_pack.ParseFromIstream(&ifs)) {
+        return;
+    }
+
+    tc = tc::serialization::DeserializeTransportCatalogue(full_pack.transport_catalogue());
+    render_set = tc::serialization::DeserializeRenderSettings(full_pack.render_set());
+    routing_set = tc::serialization::DeserializeRoutingSettings(full_pack.routing_set());
 }
 
-tc::renderer::RenderSettings DeserializeRenderSettings(const tc_serialization::TC& tc_pb){
-    tc::renderer::RenderSettings rs;
-    rs.width = tc_pb.rs().width();
-    rs.height = tc_pb.rs().height();
-    rs.padding = tc_pb.rs().padding();
-    rs.line_width = tc_pb.rs().line_width();
-    rs.stop_radius = tc_pb.rs().stop_radius();
+tc::router::RoutingSettings DeserializeRoutingSettings(const tc_serialization::RoutingSettings& routing_set_pb){
+    return {routing_set_pb.bus_wait_time(), routing_set_pb.bus_velocity()};
+}
 
-    rs.bus_label_font_size = tc_pb.rs().bus_label_font_size();
-    rs.bus_label_offset = {tc_pb.rs().bus_label_offset().dx(),
-                           tc_pb.rs().bus_label_offset().dy()};
+tc::renderer::RenderSettings DeserializeRenderSettings(const tc_serialization::RenderSettings& render_set_pb){
+    tc::renderer::RenderSettings render_set;
+    render_set.width = render_set_pb.width();
+    render_set.height = render_set_pb.height();
+    render_set.padding = render_set_pb.padding();
+    render_set.line_width = render_set_pb.line_width();
+    render_set.stop_radius = render_set_pb.stop_radius();
 
-    rs.stop_label_font_size =  tc_pb.rs().stop_label_font_size();
-    rs.stop_label_offset = {tc_pb.rs().stop_label_offset().dx(),
-                            tc_pb.rs().stop_label_offset().dy()};
+    render_set.bus_label_font_size = render_set_pb.bus_label_font_size();
+    render_set.bus_label_offset = {render_set_pb.bus_label_offset().dx(),
+                           render_set_pb.bus_label_offset().dy()};
 
-    rs.underlayer_color = (tc_pb.rs().has_underlayer_color())
-                           ? DeserializeSVGColor(tc_pb.rs().underlayer_color())
+    render_set.stop_label_font_size =  render_set_pb.stop_label_font_size();
+    render_set.stop_label_offset = {render_set_pb.stop_label_offset().dx(),
+                            render_set_pb.stop_label_offset().dy()};
+
+    render_set.underlayer_color = (render_set_pb.has_underlayer_color())
+                           ? DeserializeSVGColor(render_set_pb.underlayer_color())
                            : svg::NoneColor;
-    rs.underlayer_width = tc_pb.rs().underlayer_width();
+    render_set.underlayer_width = render_set_pb.underlayer_width();
 
-    for (size_t i = 0; i < tc_pb.rs().color_palette_size(); ++i){
-        rs.color_palette.push_back(DeserializeSVGColor(tc_pb.rs().color_palette(i)));
+    for (size_t i = 0; i < render_set_pb.color_palette_size(); ++i){
+        render_set.color_palette.push_back(DeserializeSVGColor(render_set_pb.color_palette(i)));
     }
 
-    return rs;
+    return render_set;
 }
 
 svg::Color DeserializeSVGColor(tc_serialization::Color color){
@@ -183,7 +206,7 @@ svg::Color DeserializeSVGColor(tc_serialization::Color color){
     return svg::Rgba(color.rgb(0), color.rgb(1), color.rgb(2), color.opacity().opacity());
 }
 
-tc::TransportCatalogue DeserializeTransportCatalogue(const tc_serialization::TC& tc_pb){
+tc::TransportCatalogue DeserializeTransportCatalogue(const tc_serialization::TransportCatalogue& tc_pb){
     tc::TransportCatalogue tc;
 
     DeserializeStop(tc, tc_pb);
@@ -192,7 +215,7 @@ tc::TransportCatalogue DeserializeTransportCatalogue(const tc_serialization::TC&
     return std::move(tc);
 }
 
-void DeserializeStop(tc::TransportCatalogue& tc, const tc_serialization::TC& tc_pb){
+void DeserializeStop(tc::TransportCatalogue& tc, const tc_serialization::TransportCatalogue& tc_pb){
     // Add all Stops
     for (size_t i = 0; i < tc_pb.stop_size(); ++i){
         tc.AddStop(tc_pb.stop(i).name(), tc_pb.stop(i).lat(), tc_pb.stop(i).lng());
@@ -205,7 +228,7 @@ void DeserializeStop(tc::TransportCatalogue& tc, const tc_serialization::TC& tc_
         }
     }
 }
-void DeserializeBus(tc::TransportCatalogue& tc, const tc_serialization::TC& tc_pb){
+void DeserializeBus(tc::TransportCatalogue& tc, const tc_serialization::TransportCatalogue& tc_pb){
    // Add all Buses
     for (size_t i = 0; i < tc_pb.bus_size(); ++i){
         vector<string_view> stops_for_bus;

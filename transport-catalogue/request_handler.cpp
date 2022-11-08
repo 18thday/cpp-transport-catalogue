@@ -13,28 +13,25 @@ void MakeBase(){
     json::Node main_node = tc::reader::LoadJSON(std::cin);
 
     tc::TransportCatalogue tc;
-    tc::renderer::RenderSettings render_s;
-    tc::router::RoutingSettings routing_s;
-    tc::reader::MakeBaseFromJSON(tc, render_s, routing_s, main_node);
+    tc::renderer::RenderSettings render_set;
+    tc::router::RoutingSettings routing_set;
+
+    tc::reader::MakeBaseFromJSON(tc, render_set, routing_set, main_node);
 
     std::string filename = tc::reader::ReadSerializationSettingsFromJSON(main_node);
-    tc::serialization::Serialize(tc, render_s, routing_s, filename);
+    tc::serialization::Serialize(tc, render_set, routing_set, filename);
 }
 
 void ProcessRequests(){
     json::Node main_node = tc::reader::LoadJSON(std::cin);
+
     std::string filename = tc::reader::ReadSerializationSettingsFromJSON(main_node);
 
-    tc_serialization::TC tc_pb;
+    tc::TransportCatalogue tc;
+    tc::renderer::RenderSettings render_set;
+    tc::router::RoutingSettings routing_set;
 
-    std::ifstream ifs(filename, std::ios_base::binary);
-    if (!tc_pb.ParseFromIstream(&ifs)) {
-        return;
-    }
+    tc::serialization::Deserialize(tc, render_set, routing_set, filename);
 
-    tc::TransportCatalogue tc = tc::serialization::DeserializeTransportCatalogue(tc_pb);
-    tc::renderer::RenderSettings render_s = tc::serialization::DeserializeRenderSettings(tc_pb);
-    tc::router::RoutingSettings routing_s = tc::serialization::DeserializeRoutingSettings(tc_pb);
-
-    tc::reader::ProcessRequestFromJSON(tc, render_s, routing_s, main_node);
+    tc::reader::ProcessRequestFromJSON(tc, render_set, routing_set, main_node);
 }
